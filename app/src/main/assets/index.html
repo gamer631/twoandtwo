@@ -1,0 +1,77 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<meta name="theme-color" content="#101522">
+<title>TwoAndTwo</title>
+<style>
+:root{color-scheme:dark;--bg:#101522;--panel:#192235;--line:#2b3a55;--text:#eef4ff;--muted:#a5b4cc;--green:#58f0a5;--red:#ff647c;--blue:#78aaff}
+*{box-sizing:border-box}body{margin:0;min-height:100vh;background:radial-gradient(ellipse at top,#1d2d49 0,#101522 55%);color:var(--text);font:16px/1.5 system-ui,-apple-system,Segoe UI,sans-serif;display:grid;place-items:center;padding:24px}
+main{width:min(760px,100%)}header{text-align:center;margin-bottom:24px}h1{font-size:clamp(2.5rem,8vw,4.5rem);letter-spacing:-.06em;margin:0}h1 span{color:var(--green)}header p{color:var(--muted);margin:6px 0}
+.panel{background:#192235eF;border:1px solid var(--line);border-radius:22px;padding:clamp(20px,5vw,36px);box-shadow:0 24px 80px #0005}
+.view[hidden]{display:none}.eyebrow{color:var(--green);font-weight:800;text-transform:uppercase;letter-spacing:.14em;font-size:.75rem}
+h2{margin:8px 0 12px;font-size:1.8rem}.muted{color:var(--muted)}.actions{display:flex;gap:12px;flex-wrap:wrap;margin-top:24px}
+button{border:0;border-radius:12px;padding:12px 18px;font:700 1rem inherit;cursor:pointer;background:var(--green);color:#092016;transition:transform .15s,filter .15s}
+button:hover{filter:brightness(1.08);transform:translateY(-1px)}button:focus-visible{outline:3px solid white;outline-offset:3px}
+button.secondary{background:#293852;color:var(--text)}button.danger{background:var(--red);color:#260710}
+.question{font-size:clamp(2.5rem,9vw,4rem);font-weight:850;text-align:center;margin:24px 0}.answer-row{display:flex;gap:10px;max-width:430px;margin:auto}
+input{min-width:0;flex:1;border:1px solid var(--line);background:#0f1726;color:white;border-radius:12px;padding:13px;font-size:1.1rem}
+.feedback{text-align:center;min-height:28px;margin-top:14px;font-weight:700}.score{display:flex;justify-content:space-between;color:var(--muted)}
+.terminal{background:#050b0a;border:1px solid #23533b;border-radius:14px;padding:18px;min-height:270px;font:14px/1.7 ui-monospace,SFMono-Regular,Consolas,monospace;color:#7dffb2;overflow:hidden}
+.terminal .warn{color:#ff7385}.terminal .dim{color:#9bb4a5}.progress{height:12px;background:#243044;border-radius:20px;overflow:hidden;margin:16px 0}.bar{height:100%;width:0;background:linear-gradient(90deg,#32d583,#b4ff75);transition:width .2s}
+.disclaimer{font-size:.85rem;color:var(--muted);margin-top:14px}.tag{display:inline-block;padding:4px 9px;border:1px solid var(--line);border-radius:99px;color:var(--muted);font-size:.8rem}
+footer{text-align:center;color:#8291a9;font-size:.8rem;margin-top:18px}
+@media(max-width:480px){.answer-row{flex-direction:column}.actions button{flex:1}}
+</style>
+</head>
+<body>
+<main>
+<header><div class="eyebrow">A tiny game with a silly secret</div><h1>Two<span>And</span>Two</h1><p>Quick brain warm-ups. Unexpected giggles.</p></header>
+<section class="panel view" id="home" hidden>
+ <span class="tag">Welcome, player</span><h2>What would you like to play?</h2>
+ <p class="muted">Solve a few quick sums, or open the completely harmless prank simulator.</p>
+ <div class="actions"><button id="playBtn">Play the math game</button><button class="secondary" id="prankBtn">Virus Prank 😈</button></div>
+</section>
+<section class="panel view" id="game" hidden>
+ <div class="score"><span>Question <b id="questionNo">1</b></span><span>Score <b id="score">0</b></span></div>
+ <div class="eyebrow">Quick maths</div><div class="question" id="problem">2 + 2 = ?</div>
+ <form class="answer-row" id="answerForm"><input id="answer" type="number" inputmode="numeric" placeholder="Your answer" autocomplete="off" required aria-label="Your answer"><button>Check</button></form>
+ <div class="feedback" id="feedback" aria-live="polite"></div>
+ <div class="actions"><button class="secondary" id="gameHome">Back to menu</button></div>
+</section>
+<section class="panel view" id="prank">
+ <span class="tag">Auto-start demo · Simulation only · No system access</span><h2>Surprise! Totally Fake Virus Scanner 😈</h2>
+ <p class="muted">The prank starts automatically when you open TwoAndTwo. This is only a theatrical animation; it does not scan or touch your device. Press Stop / Exit or ESC at any time.</p>
+ <div class="terminal" id="terminal" role="log" aria-live="polite"><div>TwoAndTwo security theatre v1.0</div><div class="dim">Ready when you are...</div></div>
+ <div class="progress" aria-label="Simulation progress"><div class="bar" id="bar"></div></div>
+ <div class="score"><span id="status">Idle</span><b id="percent">0%</b></div>
+ <div class="actions"><button id="startPrank">Start the prank</button><button class="danger" id="stopPrank">Stop / Exit</button></div>
+ <p class="disclaimer">Safety note: all messages are fictional. No files, settings, accounts, or network connections are accessed.</p>
+</section>
+<footer>TwoAndTwo · Made for fun · Nothing sneaky happens here.</footer>
+</main>
+<script>
+const views={home:document.getElementById('home'),game:document.getElementById('game'),prank:document.getElementById('prank')};
+function show(name){Object.entries(views).forEach(([key,node])=>node.hidden=key!==name);if(name!=='prank')stopSimulation();}
+document.getElementById('playBtn').addEventListener('click',()=>{show('game');newQuestion();});
+document.getElementById('prankBtn').addEventListener('click',()=>show('prank'));
+document.getElementById('gameHome').addEventListener('click',()=>show('home'));
+let a=2,b=2,score=0,questionNo=1;
+function newQuestion(){a=Math.floor(Math.random()*9)+1;b=Math.floor(Math.random()*9)+1;document.getElementById('problem').textContent=a+' + '+b+' = ?';document.getElementById('questionNo').textContent=questionNo;document.getElementById('answer').value='';document.getElementById('answer').focus();}
+document.getElementById('answerForm').addEventListener('submit',e=>{e.preventDefault();const field=document.getElementById('answer'),feedback=document.getElementById('feedback');if(Number(field.value)===a+b){score++;feedback.textContent='Correct! Nice one 🎉';feedback.style.color='var(--green)';}else{feedback.textContent='Not quite — the answer was '+(a+b)+'. Keep going!';feedback.style.color='var(--red)';}document.getElementById('score').textContent=score;questionNo++;setTimeout(newQuestion,650);});
+const terminal=document.getElementById('terminal'),bar=document.getElementById('bar'),percent=document.getElementById('percent'),status=document.getElementById('status');
+const lines=['Booting imaginary mischief engine...','Checking imaginary pixel particles...','Searching for lost socks...','Negotiating with the toaster...','Counting invisible hamsters...','Encrypting absolutely nothing...','Asking the computer to tell a joke...','Pretending to scan fictional files...'];
+let timer=null,progress=0;
+function addLine(message,kind=''){const line=document.createElement('div');line.textContent='> '+message;if(kind)line.className=kind;terminal.appendChild(line);terminal.scrollTop=terminal.scrollHeight;}
+function stopSimulation(){if(timer){clearInterval(timer);timer=null;} }
+function resetSimulation(){stopSimulation();progress=0;bar.style.width='0%';percent.textContent='0%';status.textContent='Idle';terminal.replaceChildren();addLine('TwoAndTwo security theatre v1.0');addLine('Ready. This is only an animation.','dim');}
+function startSimulation(){resetSimulation();status.textContent='Running simulation';document.getElementById('startPrank').disabled=true;timer=setInterval(()=>{progress=Math.min(100,progress+Math.ceil(Math.random()*7));bar.style.width=progress+'%';percent.textContent=progress+'%';addLine(lines[Math.floor(Math.random()*lines.length)]);if(progress>=100){stopSimulation();addLine('!!! IMAGINARY SYSTEM TAKEOVER COMPLETE !!!','warn');addLine('JUST KIDDING! 😂 Your device is completely safe.');status.textContent='Prank complete — all clear';document.getElementById('startPrank').disabled=false;}},260);}
+document.getElementById('startPrank').addEventListener('click',startSimulation);
+document.getElementById('stopPrank').addEventListener('click',()=>{stopSimulation();document.getElementById('startPrank').disabled=false;show('home');});
+// Auto-start only when the user opens this app page; downloading the file never executes it.
+window.addEventListener('DOMContentLoaded',()=>{show('prank');window.setTimeout(()=>{if(!views.prank.hidden)startSimulation();},700);});
+document.addEventListener('keydown',e=>{if(e.key==='Escape'&&!views.prank.hidden){stopSimulation();document.getElementById('startPrank').disabled=false;show('home');}});
+</script>
+</body>
+</html>
