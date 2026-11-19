@@ -48,9 +48,7 @@ public class MainActivity extends Activity {
 
     @Override
     public void onBackPressed() {
-        if (webView != null) webView.evaluateJavascript(
-                "document.getElementById('stopPrank')?.click()", null);
-        else super.onBackPressed();
+        super.onBackPressed();
     }
 
     @Override
