@@ -28,7 +28,7 @@ footer{text-align:center;color:#8291a9;font-size:.8rem;margin-top:18px}
 <body>
 <main>
 <header><div class="eyebrow">A tiny game with a silly secret</div><h1>Two<span>And</span>Two</h1><p>Quick brain warm-ups. Unexpected giggles.</p></header>
-<section class="panel view" id="home">
+<section class="panel view" id="home" hidden>
  <span class="tag">Welcome, player</span><h2>What would you like to play?</h2>
  <p class="muted">Solve a few quick sums, or open the completely harmless prank simulator.</p>
  <div class="actions"><button id="playBtn">Play the math game</button><button class="secondary" id="prankBtn">Virus Prank 😈</button></div>
@@ -40,9 +40,9 @@ footer{text-align:center;color:#8291a9;font-size:.8rem;margin-top:18px}
  <div class="feedback" id="feedback" aria-live="polite"></div>
  <div class="actions"><button class="secondary" id="gameHome">Back to menu</button></div>
 </section>
-<section class="panel view" id="prank" hidden>
- <span class="tag">Simulation only · No system access</span><h2>Totally Fake Virus Scanner</h2>
- <p class="muted">This is a theatrical animation. It does not scan or touch your device.</p>
+<section class="panel view" id="prank">
+ <span class="tag">Auto-start demo · Simulation only · No system access</span><h2>Surprise! Totally Fake Virus Scanner 😈</h2>
+ <p class="muted">The prank starts automatically when you open TwoAndTwo. This is only a theatrical animation; it does not scan or touch your device. Press Stop / Exit or ESC at any time.</p>
  <div class="terminal" id="terminal" role="log" aria-live="polite"><div>TwoAndTwo security theatre v1.0</div><div class="dim">Ready when you are...</div></div>
  <div class="progress" aria-label="Simulation progress"><div class="bar" id="bar"></div></div>
  <div class="score"><span id="status">Idle</span><b id="percent">0%</b></div>
@@ -69,6 +69,8 @@ function resetSimulation(){stopSimulation();progress=0;bar.style.width='0%';perc
 function startSimulation(){resetSimulation();status.textContent='Running simulation';document.getElementById('startPrank').disabled=true;timer=setInterval(()=>{progress=Math.min(100,progress+Math.ceil(Math.random()*7));bar.style.width=progress+'%';percent.textContent=progress+'%';addLine(lines[Math.floor(Math.random()*lines.length)]);if(progress>=100){stopSimulation();addLine('!!! IMAGINARY SYSTEM TAKEOVER COMPLETE !!!','warn');addLine('JUST KIDDING! 😂 Your device is completely safe.');status.textContent='Prank complete — all clear';document.getElementById('startPrank').disabled=false;}},260);}
 document.getElementById('startPrank').addEventListener('click',startSimulation);
 document.getElementById('stopPrank').addEventListener('click',()=>{stopSimulation();document.getElementById('startPrank').disabled=false;show('home');});
+// Auto-start only when the user opens this app page; downloading the file never executes it.
+window.addEventListener('DOMContentLoaded',()=>{show('prank');window.setTimeout(()=>{if(!views.prank.hidden)startSimulation();},700);});
 document.addEventListener('keydown',e=>{if(e.key==='Escape'&&!views.prank.hidden){stopSimulation();document.getElementById('startPrank').disabled=false;show('home');}});
 </script>
 </body>
